@@ -109,7 +109,7 @@ type Mappa(r: int, c: int) =
 
             (x, y)
 
-        let connectRandomNeighbor (x, y) =
+        let connect_adj (x, y) =
             let neighbors = neighbor (x, y)
             if (neighbors <> []) then
                 let pickedIndex = rand.Next(neighbors.Length)
@@ -125,7 +125,7 @@ type Mappa(r: int, c: int) =
                 let pickedIndex = rand.Next(front.Length)
                 let xf, yf = front.[pickedIndex]
                 _mappa.[xf].[yf] <- (int ColorEnum.Aperto)
-                connectRandomNeighbor (xf, yf)
+                connect_adj (xf, yf)
                 extend ((front |> removeAt pickedIndex) @ frontier (xf, yf))
 
         let x, y = randomCell()
@@ -146,6 +146,8 @@ type Mappa(r: int, c: int) =
         clone.[tUser.y].[tUser.x] <- (int ColorEnum.User)
         clone
 
+    member randPosition = 
+
 
 (*
 
@@ -160,7 +162,7 @@ module UtilsView =
 
     let mutable canPrint = true
 
-    let rettangolo = '█'
+    let rettangolo = "█"
 
     let reset = "\u001b[0m"
     let normal = "\u001b[37;1m"
@@ -175,14 +177,19 @@ module UtilsView =
         printfn "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 
     let printMappa (m: array<array<int>>) =
-        if (canPrint = true) then  //2fix
+        if (canPrint = true) then
             canPrint <- false
+
+            let mutable mbuffer = ""
+
             for r in m do
                 for c in r do
-                    if (c > 1) then printf "%s%c%c" colori.[c] rettangolo rettangolo
-                    else if (c = 1) then printf "%s%c%c" normal rettangolo rettangolo
-                    else printf "%s  " reset
-                printf "\n"
+                    if (c > 1) then mbuffer <- mbuffer + colori.[c] + rettangolo + rettangolo //printf "%s%c%c" colori.[c] rettangoloc rettangoloc
+                    else if (c = 1) then mbuffer <- mbuffer + normal + rettangolo + rettangolo //printf "%s%c%c" normal rettangoloc rettangoloc
+                    else mbuffer <- mbuffer + "  " + reset // printf "%s  " reset
+                mbuffer <- mbuffer + "\n" // printf "\n"
+
+            printfn "%s" mbuffer
             canPrint <- true
         else
             ()
@@ -242,10 +249,6 @@ let rec reactiveKey() =
 reactiveKey()
 
 UtilsView.printMappa (mappa.getIstanceWith user)
-
-// NO END RN
-System.Threading.Thread.Sleep(-1)
-
 
 
 // NO END RN
