@@ -32,11 +32,17 @@ module Utils =
             yield [| for x in 0 .. C do
                          yield colore |] |]
 
+    let initPaths R C = 
+        [| for x in 0 .. R do
+            yield [| for x in 0 .. C do
+                         yield (-1,-1) |] |]
+
 type ColorEnum =
     | Bloccato = 1
     | Aperto = 0
     | User = 3
     | End = 4
+    | Percorso = 5
 
 
 (*
@@ -66,10 +72,12 @@ type Player(x: int, y: int) =
     member this.goRight = _x <- (_x + 1);this.isLegal(x,y);
 
 type Mappa(r: int, c: int) =
-    let _mappa: array<array<int>> = Utils.initMatrix r c (int ColorEnum.Bloccato)
+    let _mappa: array<array<int >> = Utils.initMatrix r c (int ColorEnum.Bloccato)
 
     let mutable _end: int * int = (0,0)
+    let mutable _paths:array<array<int * int>> = Utils.initPaths r c
 
+    member this.paths = _paths;
     member this.finish = _end
     member this.mappa = _mappa
 
@@ -148,14 +156,37 @@ type Mappa(r: int, c: int) =
         extend (frontier (x, y))
 
         _mappa
+(*
+    member this.dfs (matrix:array<array<int>>) start = 
+        let dirs = [(0,1);(0,-1);(-1,0);(1,0)];
+        let (startX,startY) = start;
 
-    member this.getIstanceWith (tUser: Player): array<array<int>> =
+        for (dirX,dirY) in dirs do
+            let mutable x = startX+dirX;
+            let mutable y = startY+dirY;
+            let mutable count = 0;
+
+            while (this.isLegal(x,y) && (matrix.[x].[y] = (int ColorEnum.Aperto)) ) do
+
+
+            if (this.paths.[startX].[startY] + count < this.paths.[x - dirX].[y - dirY]) then 
+                this.paths.[x - dirX].[y - dirY] <- this.paths.[startX].[startY] + count;
+                (this.dfs matrix (x - dirX,y - dirY))
+*)
+
+    member this.getIstanceWith (tUser: Player) (showSolution:bool): array<array<int>> =
         let clone: array<array<int>> = Utils.initMatrix (this.r) (this.c) (int ColorEnum.Bloccato)
 
         // Apply all walls blocks
         for x in 0 .. (this.r - 1) do
             for y in 0 .. (this.c - 1) do
                 clone.[x].[y] <- this.mappa.[x].[y]
+(*
+        if(showSolution) then
+            _paths.[tUser.x].[tUser.y] <- 0;
+            this.dfs clone (tUser.x,tUser.y)
+            printfn "%A" _paths
+*)
 
         // Apply current user
         clone.[tUser.y].[tUser.x] <- (int ColorEnum.User)
@@ -180,6 +211,7 @@ type Mappa(r: int, c: int) =
 
         if nCoolSpawns = 0 then (0, 0)
         else coolSpawns.[rand.Next(nCoolSpawns)]
+
 
 
 
@@ -277,13 +309,13 @@ let rec reactiveKey() =
         let needToRefresh = Control.onKey keyName
         if needToRefresh then
             //UtilsView.cls
-            UtilsView.printMappa (mappa.getIstanceWith user)
+            UtilsView.printMappa (mappa.getIstanceWith user true)
     }
     |> Async.Start
 
 reactiveKey()
 
-UtilsView.printMappa (mappa.getIstanceWith user)
+UtilsView.printMappa (mappa.getIstanceWith user true)
 
 
 // NO END RN
