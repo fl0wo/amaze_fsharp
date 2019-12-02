@@ -26,6 +26,12 @@ module Mate =
 
     let noOverflow (x: int) (M: int) = massimo 0 (minimo x M)
 
+
+type OS =
+        | OSX
+        | Windows
+        | Linux
+
 module Utils =
 
     let initMatrix R C colore =
@@ -37,6 +43,11 @@ module Utils =
         [| for x in 0 .. R do
             yield [| for x in 0 .. C do
                          yield (-1,-1) |] |]
+    let getOS = 
+        match int Environment.OSVersion.Platform with
+        | 4 | 128 -> Linux
+        | 6       -> OSX
+        | _       -> Windows
 
 type ColorEnum =
     | Bloccato = 1
@@ -66,7 +77,6 @@ type Player(x: int, y: int) =
 
     member this.isLegal (x, y) = (x > 0 && y > 0)
 
-
     member this.goUp = _y <- (_y - 1);this.isLegal(x,y);
     member this.goDown = _y <- (_y + 1);this.isLegal(x,y);
     member this.goLeft = _x <- (_x - 1);this.isLegal(x,y);
@@ -77,6 +87,7 @@ type Mappa(r: int, c: int) =
 
     let mutable _end: int * int = (0,0)
     let mutable _paths:array<array<int * int>> = Utils.initPaths r c
+    let mutable arePathsGenerated = false;
 
     member this.paths = _paths;
     member this.finish = _end
@@ -157,37 +168,49 @@ type Mappa(r: int, c: int) =
         extend (frontier (x, y))
 
         _mappa
-(*
+
     member this.dfs (matrix:array<array<int>>) start = 
         let dirs = [(0,1);(0,-1);(-1,0);(1,0)];
-        let (startX,startY) = start;
+        let (currentR,currentC) = start;
 
         for (dirX,dirY) in dirs do
-            let mutable x = startX+dirX;
-            let mutable y = startY+dirY;
+            let mutable x = currentR+dirX;
+            let mutable y = currentC+dirY;
             let mutable count = 0;
 
-            while (this.isLegal(x,y) && (matrix.[x].[y] = (int ColorEnum.Aperto)) ) do
+            if(this.isLegal(x,y) && (matrix.[x].[y] <> (int ColorEnum.Bloccato)) ) then
+                if (_paths.[x].[y] = (-1,-1)) then // se non l'ho ancora visitato
+                    _paths.[x].[y] <- (currentR,currentC);
+                    //printfn "eppure entra qui %A" (currentR,currentC)
+                    (this.dfs matrix (x,y))
+
+    member this.applyPathOn (map:array<array<int>>) finish curPosition  : array<array<int>> = 
+        if(curPosition <> finish) then 
+            let (curR,curC) = curPosition;
+            map.[curR].[curC] <- (int ColorEnum.Percorso)
+            let (nextR,nextC) = _paths.[curR].[curC];
+            this.applyPathOn map finish (nextR,nextC)
+        else map
 
 
-            if (this.paths.[startX].[startY] + count < this.paths.[x - dirX].[y - dirY]) then 
-                this.paths.[x - dirX].[y - dirY] <- this.paths.[startX].[startY] + count;
-                (this.dfs matrix (x - dirX,y - dirY))
-*)
+    member this.getIstanceWith (tUser: Player) (finish:int*int) (showSolution:bool): array<array<int>> =
+        let mutable clone: array<array<int>> = Utils.initMatrix (this.r) (this.c) (int ColorEnum.Bloccato)
 
-    member this.getIstanceWith (tUser: Player) (showSolution:bool): array<array<int>> =
-        let clone: array<array<int>> = Utils.initMatrix (this.r) (this.c) (int ColorEnum.Bloccato)
-
-        // Apply all walls blocks
+        // Applico tutti i blocchi del labirinto
         for x in 0 .. (this.r - 1) do
             for y in 0 .. (this.c - 1) do
                 clone.[x].[y] <- this.mappa.[x].[y]
-(*
+
+        if( not arePathsGenerated) then
+            let (eY,eX) = finish;
+            _paths.[eY].[eX] <- (eY,eX);
+            this.dfs clone finish   // Parto dalla fine e vedo come arrivare in tutte le celle
+            arePathsGenerated <- true;
+
         if(showSolution) then
-            _paths.[tUser.x].[tUser.y] <- 0;
-            this.dfs clone (tUser.x,tUser.y)
-            printfn "%A" _paths
-*)
+            // Applico tutti i blocchi del percorso risolutivo
+            clone <- (this.applyPathOn clone finish (tUser.y,tUser.x))
+
 
         // Apply current user
         clone.[tUser.y].[tUser.x] <- (int ColorEnum.User)
@@ -229,7 +252,7 @@ module UtilsView =
 
     let mutable canPrint = true
 
-    let n_upper_border = 2;
+    let N_UPPER_BORDER = 2;
     let rettangolo = "█"
 
     let reset = "\u001b[0m"
@@ -242,48 +265,82 @@ module UtilsView =
     let setWindowSize (w: int) (h: int) = Console.SetWindowSize(w, h)
 
     let cls =
-        printfn "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+        Console.Clear()
 
-    let generate_map_buffer (m: array<array<int>>) :string = 
-        let mutable mbuffer = "\n\n"    // resize with n_upper_border
+    let __genBufferWithAnsii (m: array<array<int>>) :string = 
+        let mutable mbuffer = "\n\n"    // resize with N_UPPER_BORDER
         for r in m do
             for c in r do
-                if (c > 1) then mbuffer <- mbuffer + (* colori.[c] +*) rettangolo + rettangolo //printf "%s%c%c" colori.[c] rettangoloc rettangoloc
-                else if (c = 1) then mbuffer <- mbuffer (*+ normal*) + rettangolo + rettangolo //printf "%s%c%c" normal rettangoloc rettangoloc
-                else mbuffer <- mbuffer + "  " (* + reset *)// printf "%s  " reset
-            mbuffer <- mbuffer + "\n" // printf "\n"
-        
+                if (c > 1) then mbuffer <- mbuffer +  colori.[c] + rettangolo + rettangolo 
+                else if (c = 1) then mbuffer <- mbuffer + normal+ rettangolo + rettangolo
+                else mbuffer <- mbuffer + "  " + reset
+            mbuffer <- mbuffer + "\n"
         mbuffer
+
+    let __genBuffer (m: array<array<int>>) (kindOf) :string = 
+        let mutable mbuffer = "\n\n"    // resize with N_UPPER_BORDER
+        for r in m do
+            for c in r do
+                if (c = kindOf) then mbuffer <- mbuffer + rettangolo + rettangolo
+                else mbuffer <- mbuffer + "  "
+            mbuffer <- mbuffer + "\n"
+        mbuffer
+
+    let colorCell (x,y) c = 
+        Console.SetCursorPosition(x * 2, y + (N_UPPER_BORDER));
+        Console.BackgroundColor <- c
+        Console.WriteLine("  ")
+        Console.SetCursorPosition(0, 0)
+        Console.ResetColor()
+
+    let colorBuffer (buffer:string) c = 
+        Console.SetCursorPosition(0, 0)
+        Console.ForegroundColor <- c
+        Console.WriteLine(buffer)
+        Console.SetCursorPosition(0, 0)
+        Console.ResetColor()
+
+    let colorPaths (m: array<array<int>>) (kindOfBlock) (c) = 
+        for i in 0..(m.Length-1) do
+            for j in 0..(m.[i].Length-1) do
+                if(m.[i].[j] = kindOfBlock) then
+                    colorCell (j,i) c
 
     let printMappaLinux (m: array<array<int>>) =
         if (canPrint) then
             canPrint <- false
 
-            let mbuffer = generate_map_buffer m
+            let mbuffer = __genBufferWithAnsii m
 
             printfn "%s" mbuffer
             canPrint <- true
         else
             ()
 
-    let printMappaWindows (m:array<array<int>>) (u:Player) (e) =
-        Console.ForegroundColor <- ConsoleColor.White
-        //Console.BackgroundColor <- ConsoleColor.Black
+    let printMappaWindows (m:array<array<int>>) (u:Player) (e:int*int) =
+        if (canPrint) then
 
-        let mbuffer = generate_map_buffer m
+            Console.ForegroundColor <- ConsoleColor.White
 
-        Console.WriteLine(mbuffer)
+            let wall_buffer = (__genBuffer m (int ColorEnum.Bloccato))
 
-        Console.SetCursorPosition(u.x * 2, u.y + (n_upper_border));
-        Console.BackgroundColor <- ConsoleColor.Blue
-        Console.WriteLine("  ")
-        Console.SetCursorPosition(0, 0)
-        
-        let (endX,endY) = e;
-        
+            (colorBuffer wall_buffer ConsoleColor.White)
 
-        Console.ResetColor()
-        ()
+            (colorPaths m (int ColorEnum.Percorso) ConsoleColor.Green)
+            // Coloro l'utente
+            (colorCell (u.x, u.y) ConsoleColor.Blue)
+
+            let (endY,endX) = e;
+
+            // Coloro la fine
+            (colorCell (endX,endY) ConsoleColor.Red)
+        else ()
+
+    let printMap (m:array<array<int>>) (u:Player) (e) =
+        match Utils.getOS with
+        | Windows -> (printMappaWindows m u e);
+        | Linux -> printMappaLinux m;
+        | OSX -> printMappaLinux m;
 
 
 (*
@@ -297,7 +354,7 @@ module UtilsView =
 
 
 
-let mappa: Mappa = new Mappa(21, 21)
+let mappa: Mappa = new Mappa(41, 41)
 
 mappa.initLabirinto
 
@@ -333,14 +390,13 @@ let rec reactiveKey() =
         let needToRefresh = Control.onKey keyName
         if needToRefresh then
             //UtilsView.cls
-            UtilsView.printMappaWindows (mappa.getIstanceWith user true) user
+            UtilsView.printMap (mappa.getIstanceWith user (endY,endX) true) user (endY, endX)
     }
     |> Async.Start
 
 reactiveKey()
 
-UtilsView.printMappaWindows (mappa.getIstanceWith user true) user
-
+UtilsView.printMap (mappa.getIstanceWith user (endY,endX) true) user (endY, endX)
 
 // NO END RN
 Threading.Thread.Sleep(-1)
