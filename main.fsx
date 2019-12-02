@@ -1,4 +1,5 @@
 open System
+open System.IO
 
 let rand = System.Random()
 
@@ -242,17 +243,17 @@ module UtilsView =
     let cls =
         printfn "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 
-    let printMappa (m: array<array<int>>) =
-        if (canPrint = true) then
+    let printMappaLinux (m: array<array<int>>) =
+        if (canPrint) then
             canPrint <- false
 
-            let mutable mbuffer = ""
+            let mutable mbuffer = "\n\n"
 
             for r in m do
                 for c in r do
                     if (c > 1) then mbuffer <- mbuffer + colori.[c] + rettangolo + rettangolo //printf "%s%c%c" colori.[c] rettangoloc rettangoloc
-                    else if (c = 1) then mbuffer <- mbuffer + normal + rettangolo + rettangolo //printf "%s%c%c" normal rettangoloc rettangoloc
-                    else mbuffer <- mbuffer + "  " + reset // printf "%s  " reset
+                    else if (c = 1) then mbuffer <- mbuffer (*+ normal*) + rettangolo + rettangolo //printf "%s%c%c" normal rettangoloc rettangoloc
+                    else mbuffer <- mbuffer + "  " (* + reset *)// printf "%s  " reset
                 mbuffer <- mbuffer + "\n" // printf "\n"
 
             printfn "%s" mbuffer
@@ -260,6 +261,53 @@ module UtilsView =
         else
             ()
 
+    let printMappaWindows (m:array<array<int>>) = 
+
+        let capture_output f =
+            use writer = new StringWriter()
+
+            use restoreOut =
+                let origOut = Console.Out
+                { new IDisposable with
+                    member __.Dispose() = Console.SetOut origOut }
+            Console.SetOut writer
+            f()
+            writer.ToString()
+
+        let collectable_print x () =
+            Console.ForegroundColor <- ConsoleColor.Red
+            printf "%s" x
+
+
+        if (canPrint) then
+            canPrint <- false
+
+            Console.ForegroundColor <- ConsoleColor.White
+
+            let mutable mbuffer = "\n\n";
+
+            for r in m do
+                for c in r do
+                    if (c > 1) then
+                        Console.ForegroundColor <- ConsoleColor.Red;
+                        mbuffer <- mbuffer + capture_output (collectable_print (rettangolo + rettangolo))
+                        Console.ResetColor()
+                    else if (c = 1) then
+                        Console.ForegroundColor <- ConsoleColor.Yellow;
+                        mbuffer <- mbuffer + capture_output (collectable_print (rettangolo + rettangolo))
+                        Console.ResetColor()
+                    else
+                        Console.ResetColor()
+                        mbuffer <- mbuffer + capture_output (collectable_print ("  "))
+
+                Console.ResetColor()
+                mbuffer <- mbuffer + capture_output (collectable_print ("\n"))
+
+            printfn "%s" mbuffer
+
+            canPrint <- true
+        else
+            ()
 
 
 (*
@@ -309,13 +357,13 @@ let rec reactiveKey() =
         let needToRefresh = Control.onKey keyName
         if needToRefresh then
             //UtilsView.cls
-            UtilsView.printMappa (mappa.getIstanceWith user true)
+            UtilsView.printMappaWindows (mappa.getIstanceWith user true)
     }
     |> Async.Start
 
 reactiveKey()
 
-UtilsView.printMappa (mappa.getIstanceWith user true)
+UtilsView.printMappaWindows (mappa.getIstanceWith user true)
 
 
 // NO END RN
