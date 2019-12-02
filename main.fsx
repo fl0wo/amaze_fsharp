@@ -98,7 +98,7 @@ type Mappa(r: int, c: int) =
 
     member this.setEnd (x,y) = 
         _end <- (x,y);
-        _mappa.[x].[y] <- (int ColorEnum.End)
+        _mappa.[y].[x] <- (int ColorEnum.End)
 
     member this.isLegal (x, y) = (x > 0 && x < (c - 1) && y > 0 && y < (r - 1))
 
@@ -309,8 +309,9 @@ module UtilsView =
     let printMappaLinux (m: array<array<int>>) =
         if (canPrint) then
             canPrint <- false
-
+        
             let mbuffer = __genBufferWithAnsii m
+            Console.SetCursorPosition(0, N_UPPER_BORDER)
 
             printfn "%s" mbuffer
             canPrint <- true
@@ -354,7 +355,7 @@ module UtilsView =
 
 
 
-let mappa: Mappa = new Mappa(41, 41)
+let mappa: Mappa = new Mappa(21, 21)
 
 mappa.initLabirinto
 
