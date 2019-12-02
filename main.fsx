@@ -229,6 +229,7 @@ module UtilsView =
 
     let mutable canPrint = true
 
+    let n_upper_border = 2;
     let rettangolo = "█"
 
     let reset = "\u001b[0m"
@@ -243,71 +244,46 @@ module UtilsView =
     let cls =
         printfn "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
 
+    let generate_map_buffer (m: array<array<int>>) :string = 
+        let mutable mbuffer = "\n\n"    // resize with n_upper_border
+        for r in m do
+            for c in r do
+                if (c > 1) then mbuffer <- mbuffer + (* colori.[c] +*) rettangolo + rettangolo //printf "%s%c%c" colori.[c] rettangoloc rettangoloc
+                else if (c = 1) then mbuffer <- mbuffer (*+ normal*) + rettangolo + rettangolo //printf "%s%c%c" normal rettangoloc rettangoloc
+                else mbuffer <- mbuffer + "  " (* + reset *)// printf "%s  " reset
+            mbuffer <- mbuffer + "\n" // printf "\n"
+        
+        mbuffer
+
     let printMappaLinux (m: array<array<int>>) =
         if (canPrint) then
             canPrint <- false
 
-            let mutable mbuffer = "\n\n"
-
-            for r in m do
-                for c in r do
-                    if (c > 1) then mbuffer <- mbuffer + colori.[c] + rettangolo + rettangolo //printf "%s%c%c" colori.[c] rettangoloc rettangoloc
-                    else if (c = 1) then mbuffer <- mbuffer (*+ normal*) + rettangolo + rettangolo //printf "%s%c%c" normal rettangoloc rettangoloc
-                    else mbuffer <- mbuffer + "  " (* + reset *)// printf "%s  " reset
-                mbuffer <- mbuffer + "\n" // printf "\n"
+            let mbuffer = generate_map_buffer m
 
             printfn "%s" mbuffer
             canPrint <- true
         else
             ()
 
-    let printMappaWindows (m:array<array<int>>) = 
+    let printMappaWindows (m:array<array<int>>) (u:Player) (e) =
+        Console.ForegroundColor <- ConsoleColor.White
+        //Console.BackgroundColor <- ConsoleColor.Black
 
-        let capture_output f =
-            use writer = new StringWriter()
+        let mbuffer = generate_map_buffer m
 
-            use restoreOut =
-                let origOut = Console.Out
-                { new IDisposable with
-                    member __.Dispose() = Console.SetOut origOut }
-            Console.SetOut writer
-            f()
-            writer.ToString()
+        Console.WriteLine(mbuffer)
 
-        let collectable_print x () =
-            Console.ForegroundColor <- ConsoleColor.Red
-            printf "%s" x
+        Console.SetCursorPosition(u.x * 2, u.y + (n_upper_border));
+        Console.BackgroundColor <- ConsoleColor.Blue
+        Console.WriteLine("  ")
+        Console.SetCursorPosition(0, 0)
+        
+        let (endX,endY) = e;
+        
 
-
-        if (canPrint) then
-            canPrint <- false
-
-            Console.ForegroundColor <- ConsoleColor.White
-
-            let mutable mbuffer = "\n\n";
-
-            for r in m do
-                for c in r do
-                    if (c > 1) then
-                        Console.ForegroundColor <- ConsoleColor.Red;
-                        mbuffer <- mbuffer + capture_output (collectable_print (rettangolo + rettangolo))
-                        Console.ResetColor()
-                    else if (c = 1) then
-                        Console.ForegroundColor <- ConsoleColor.Yellow;
-                        mbuffer <- mbuffer + capture_output (collectable_print (rettangolo + rettangolo))
-                        Console.ResetColor()
-                    else
-                        Console.ResetColor()
-                        mbuffer <- mbuffer + capture_output (collectable_print ("  "))
-
-                Console.ResetColor()
-                mbuffer <- mbuffer + capture_output (collectable_print ("\n"))
-
-            printfn "%s" mbuffer
-
-            canPrint <- true
-        else
-            ()
+        Console.ResetColor()
+        ()
 
 
 (*
@@ -357,13 +333,13 @@ let rec reactiveKey() =
         let needToRefresh = Control.onKey keyName
         if needToRefresh then
             //UtilsView.cls
-            UtilsView.printMappaWindows (mappa.getIstanceWith user true)
+            UtilsView.printMappaWindows (mappa.getIstanceWith user true) user
     }
     |> Async.Start
 
 reactiveKey()
 
-UtilsView.printMappaWindows (mappa.getIstanceWith user true)
+UtilsView.printMappaWindows (mappa.getIstanceWith user true) user
 
 
 // NO END RN
