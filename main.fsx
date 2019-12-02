@@ -370,14 +370,18 @@ module Control =
     let onKey (k: string): bool =
         match k with
         | "LeftArrow" -> (mappa.canGo (user.x-1) (user.y)) && user.goLeft;
+        | "A" -> (mappa.canGo (user.x-1) (user.y)) && user.goLeft;
 
         | "RightArrow" -> mappa.canGo (user.x+1) (user.y) && user.goRight;
+        | "D" -> mappa.canGo (user.x+1) (user.y) && user.goRight;
 
         | "Spacebar" -> (false)
 
         | "DownArrow" -> mappa.canGo user.x (user.y+1) && user.goDown;
+        | "S" -> mappa.canGo user.x (user.y+1) && user.goDown;
 
         | "UpArrow" -> mappa.canGo user.x (user.y-1) && user.goUp;
+        | "W" -> mappa.canGo user.x (user.y-1) && user.goUp;
 
         | _ -> (false)
 
