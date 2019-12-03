@@ -1,28 +1,11 @@
-#r "System.Runtime.Serialization"
-
 open System.IO
 open System.Text
 open System.Runtime.Serialization
 open System.Runtime.Serialization.Json
 
-// [<field:DataMember(Name = "name")>] per bindare con un nome diverso
+#load "./../models/parser.fsx"
 
-[<DataContract>]
-type User =
-    { name: string
-
-      x: int
-
-      y: int
-
-      color: int }
-
-
-let decode (s: string) =
-    let json = DataContractJsonSerializer(typeof<User>)
-    let byteArray = Encoding.UTF8.GetBytes(s)
-    let stream = new MemoryStream(byteArray)
-    json.ReadObject(stream) :?> User
+open Parser
 
 let tw = "{
     \"name\":\"Flo\",
@@ -31,7 +14,24 @@ let tw = "{
     \"color\":0
     }"
 
-
-let v = decode tw // val v : geo = {t = "Point"; coordinates = [|-7.002648; 110.449961|];}
+let v = Parser.decode tw // val v : geo = {t = "Point"; coordinates = [|-7.002648; 110.449961|];}
 
 printfn "%A" v
+// #r "System.Runtime.Serialization"
+// open System.IO
+// open System.Runtime.Serialization.Json
+// open System.Runtime.Serialization
+// [<DataContract>]
+// [<CLIMutable>]
+// type Person =
+//     { [<DataMember(Name = "Name")>]
+//       entityName: string
+//       [<DataMember(Name = "Type")>]
+//       entityType: string }
+// let person =
+//     { entityName = "ENTITY"
+//       entityType = "TYPE" }
+// let toJson<'t> (myObj: 't) =
+//     let fs = new FileStream(@"C:\tmp\test.json", FileMode.Create)
+//     (new DataContractJsonSerializer(typeof<'t>)).WriteObject(fs, myObj)
+// toJson<Person> person
