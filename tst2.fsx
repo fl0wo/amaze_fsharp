@@ -1,26 +1,12 @@
-open System.IO
 open System
 
-let captureOutput f =
-    use writer = new StringWriter()
+// This is our Unicode string:
+let s_unicode: string = "abcéabc"
 
-    use restoreOut =
-        let origOut = Console.Out
-        { new IDisposable with
-            member __.Dispose() = Console.SetOut origOut }
-    Console.SetOut writer
-    f()
-    writer.ToString()
+// Convert a string to utf-8 bytes.
+let utf8Bytes: array<byte> = System.Text.Encoding.UTF8.GetBytes(s_unicode)
 
-let f x () =
-    Console.ForegroundColor <- ConsoleColor.Red
-    printf "%s" x
+// Convert utf-8 bytes to a string.
+let s_unicode2: string = System.Text.Encoding.UTF8.GetString(utf8Bytes)
 
-let mutable op = captureOutput (f "Hello World")
-
-Console.ResetColor
-
-op <- op + captureOutput (f "Dio")
-
-Console.ResetColor
-printfn " OP : %s" op
+Console.WriteLine(s_unicode2)

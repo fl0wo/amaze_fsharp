@@ -98,7 +98,7 @@ type Mappa(r: int, c: int) =
 
     member this.setEnd (x,y) = 
         _end <- (x,y);
-        _mappa.[x].[y] <- (int ColorEnum.End)
+        _mappa.[y].[x] <- (int ColorEnum.End)
 
     member this.isLegal (x, y) = (x > 0 && x < (c - 1) && y > 0 && y < (r - 1))
 
@@ -262,6 +262,9 @@ module UtilsView =
         [| for x in 1 .. 8 do
             yield ("\u001b[3" + x.ToString() + ";1m") |]
 
+    let monitor = new Object() // lock
+
+
     let setWindowSize (w: int) (h: int) = Console.SetWindowSize(w, h)
 
     let cls =
@@ -309,8 +312,9 @@ module UtilsView =
     let printMappaLinux (m: array<array<int>>) =
         if (canPrint) then
             canPrint <- false
-
+        
             let mbuffer = __genBufferWithAnsii m
+            Console.SetCursorPosition(0, N_UPPER_BORDER)
 
             printfn "%s" mbuffer
             canPrint <- true
@@ -338,7 +342,7 @@ module UtilsView =
 
     let printMap (m:array<array<int>>) (u:Player) (e) =
         match Utils.getOS with
-        | Windows -> (printMappaWindows m u e);
+        | Windows -> lock monitor (fun () -> (printMappaWindows m u e))
         | Linux -> printMappaLinux m;
         | OSX -> printMappaLinux m;
 
@@ -354,7 +358,7 @@ module UtilsView =
 
 
 
-let mappa: Mappa = new Mappa(25, 25)
+let mappa: Mappa = new Mappa(21, 21)
 
 mappa.initLabirinto
 
@@ -368,11 +372,11 @@ module Control =
 
     let onKey (k: string): bool =
         match k with
-        | "LeftArrow" -> (mappa.canGo (user.x-1) (user.y)) && user.goLeft;
-        | "RightArrow" -> mappa.canGo (user.x+1) (user.y) && user.goRight;
+        | "LeftArrow" | "A" -> (mappa.canGo (user.x-1) (user.y)) && user.goLeft;
+        | "RightArrow" | "D" -> mappa.canGo (user.x+1) (user.y) && user.goRight;
+        | "DownArrow" | "S" -> mappa.canGo user.x (user.y+1) && user.goDown;
+        | "UpArrow" | "W" -> mappa.canGo user.x (user.y-1) && user.goUp;
         | "Spacebar" -> (false)
-        | "DownArrow" -> mappa.canGo user.x (user.y+1) && user.goDown;
-        | "UpArrow" -> mappa.canGo user.x (user.y-1) && user.goUp;
         | _ -> (false)
 
 let rec reactiveKey() =
@@ -383,8 +387,8 @@ let rec reactiveKey() =
         let keyName: string = key.Key.ToString()
 
         let needToRefresh = Control.onKey keyName
+
         if needToRefresh && UtilsView.canPrint then
-            //UtilsView.cls
             UtilsView.printMap (mappa.getIstanceWith user (endY,endX) true) user (endY, endX)
     }
     |> Async.Start
@@ -403,7 +407,7 @@ let rec reactiveKey() =
   /:::/  |::|___|______    /::::::\   \:::\    \    ____    /::::::\    \    /:::/  |::|   | _____
  /:::/   |::::::::\    \  /:::/\:::\   \:::\    \  /\   \  /:::/\:::\    \  /:::/   |::|   |/\    \
 /:::/    |:::::::::\____\/:::/  \:::\   \:::\____\/::\   \/:::/  \:::\____\/:: /    |::|   /::\____\
-\::/    / ~~~~~/:::/    /\::/    \:::\  /:::/    /\:::\  /:::/    \::/    /\::/    /|::|  /:::/    /
+\::/    / _____/:::/    /\::/    \:::\  /:::/    /\:::\  /:::/    \::/    /\::/    /|::|  /:::/    /
  \/____/      /:::/    /  \/____/ \:::\/:::/    /  \:::\/:::/    / \/____/  \/____/ |::| /:::/    /
              /:::/    /            \::::::/    /    \::::::/    /                   |::|/:::/    /
             /:::/    /              \::::/    /      \::::/____/                    |::::::/    /
@@ -420,10 +424,10 @@ let rec reactiveKey() =
 
 let main_form = 
 
-
-
     reactiveKey()
     UtilsView.printMap (mappa.getIstanceWith user (endY,endX) true) user (endY, endX)
 
     // NO END RN
     Threading.Thread.Sleep(-1)
+
+main_form
