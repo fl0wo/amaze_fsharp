@@ -354,7 +354,7 @@ module UtilsView =
 
 
 
-let mappa: Mappa = new Mappa(41, 41)
+let mappa: Mappa = new Mappa(25, 25)
 
 mappa.initLabirinto
 
@@ -369,15 +369,10 @@ module Control =
     let onKey (k: string): bool =
         match k with
         | "LeftArrow" -> (mappa.canGo (user.x-1) (user.y)) && user.goLeft;
-
         | "RightArrow" -> mappa.canGo (user.x+1) (user.y) && user.goRight;
-
         | "Spacebar" -> (false)
-
         | "DownArrow" -> mappa.canGo user.x (user.y+1) && user.goDown;
-
         | "UpArrow" -> mappa.canGo user.x (user.y-1) && user.goUp;
-
         | _ -> (false)
 
 let rec reactiveKey() =
@@ -388,15 +383,47 @@ let rec reactiveKey() =
         let keyName: string = key.Key.ToString()
 
         let needToRefresh = Control.onKey keyName
-        if needToRefresh then
+        if needToRefresh && UtilsView.canPrint then
             //UtilsView.cls
             UtilsView.printMap (mappa.getIstanceWith user (endY,endX) true) user (endY, endX)
     }
     |> Async.Start
 
-reactiveKey()
 
-UtilsView.printMap (mappa.getIstanceWith user (endY,endX) true) user (endY, endX)
 
-// NO END RN
-Threading.Thread.Sleep(-1)
+(*
+          _____                    _____                    _____                    _____
+         /\    \                  /\    \                  /\    \                  /\    \
+        /::\____\                /::\    \                /::\    \                /::\____\
+       /::::|   |               /::::\    \               \:::\    \              /::::|   |
+      /:::::|   |              /::::::\    \               \:::\    \            /:::::|   |
+     /::::::|   |             /:::/\:::\    \               \:::\    \          /::::::|   |
+    /:::/|::|   |            /:::/__\:::\    \               \:::\    \        /:::/|::|   |
+   /:::/ |::|   |           /::::\   \:::\    \              /::::\    \      /:::/ |::|   |
+  /:::/  |::|___|______    /::::::\   \:::\    \    ____    /::::::\    \    /:::/  |::|   | _____
+ /:::/   |::::::::\    \  /:::/\:::\   \:::\    \  /\   \  /:::/\:::\    \  /:::/   |::|   |/\    \
+/:::/    |:::::::::\____\/:::/  \:::\   \:::\____\/::\   \/:::/  \:::\____\/:: /    |::|   /::\____\
+\::/    / ~~~~~/:::/    /\::/    \:::\  /:::/    /\:::\  /:::/    \::/    /\::/    /|::|  /:::/    /
+ \/____/      /:::/    /  \/____/ \:::\/:::/    /  \:::\/:::/    / \/____/  \/____/ |::| /:::/    /
+             /:::/    /            \::::::/    /    \::::::/    /                   |::|/:::/    /
+            /:::/    /              \::::/    /      \::::/____/                    |::::::/    /
+           /:::/    /               /:::/    /        \:::\    \                    |:::::/    /
+          /:::/    /               /:::/    /          \:::\    \                   |::::/    /
+         /:::/    /               /:::/    /            \:::\    \                  /:::/    /
+        /:::/    /               /:::/    /              \:::\____\                /:::/    /
+        \::/    /                \::/    /                \::/    /                \::/    /
+         \/____/                  \/____/                  \/____/                  \/____/
+
+*)
+
+
+
+let main_form = 
+
+
+
+    reactiveKey()
+    UtilsView.printMap (mappa.getIstanceWith user (endY,endX) true) user (endY, endX)
+
+    // NO END RN
+    Threading.Thread.Sleep(-1)
