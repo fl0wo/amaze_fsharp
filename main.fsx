@@ -259,11 +259,12 @@ module UtilsView =
     let normal = "\u001b[37;1m"
 
     let colori: array<string> =
-        [| for x in 1 .. 8 do
+        [| for x in 1 .. 10 do
             yield ("\u001b[3" + x.ToString() + ";1m") |]
 
     let monitor = new Object() // lock
 
+    // let mutable oldMapClone:array<array<int>> = null;
 
     let setWindowSize (w: int) (h: int) = Console.SetWindowSize(w, h)
 
@@ -289,10 +290,10 @@ module UtilsView =
             mbuffer <- mbuffer + "\n"
         mbuffer
 
-    let colorCell (x,y) c = 
+    let colorCell (x,y) c =
         Console.SetCursorPosition(x * 2, y + (N_UPPER_BORDER));
-        Console.BackgroundColor <- c
-        Console.WriteLine("  ")
+        Console.ForegroundColor <- c
+        Console.WriteLine(rettangolo + rettangolo)
         Console.SetCursorPosition(0, 0)
         Console.ResetColor()
 
@@ -306,13 +307,13 @@ module UtilsView =
     let colorPaths (m: array<array<int>>) (kindOfBlock) (c) = 
         for i in 0..(m.Length-1) do
             for j in 0..(m.[i].Length-1) do
-                if(m.[i].[j] = kindOfBlock) then
+                // ricoloro solo se ha un colore diverso, altrimenti non ha senso
+                if(m.[i].[j]=kindOfBlock) then  // && (isNull oldMapClone || oldMapClone.[i].[j] <> kindOfBlock)) then
                     colorCell (j,i) c
 
     let printMappaLinux (m: array<array<int>>) =
         if (canPrint) then
             canPrint <- false
-        
             let mbuffer = __genBufferWithAnsii m
             Console.SetCursorPosition(0, N_UPPER_BORDER)
 
@@ -341,10 +342,16 @@ module UtilsView =
         else ()
 
     let printMap (m:array<array<int>>) (u:Player) (e) =
-        match Utils.getOS with
-        | Windows -> lock monitor (fun () -> (printMappaWindows m u e))
-        | Linux -> printMappaLinux m;
-        | OSX -> printMappaLinux m;
+        // Lock per eseguire questa sezione critica solo uno alla volta
+        // Anche se "spamma" stampa con i suoi tempi.
+        lock monitor (fun () ->
+            match Utils.getOS with
+            | Windows -> printMappaWindows m u e // ESCAPE ANSII non disponibile
+            | Linux -> printMappaLinux m // ESCAPE ANSII disponibile
+            | OSX -> printMappaLinux m // ESCAPE ANSII disponibile
+
+            // oldMapClone <- m;
+        );
 
 
 (*
