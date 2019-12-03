@@ -11,7 +11,7 @@ module Client =
 
         let tcpClient = new TcpClient() // tcpClient is private since this is an internal let binding
 
-        member private this.listenAsync() =
+        member private this.listenAsync (callback) =
             async {
                 let stream = tcpClient.GetStream()
                 use streamReader = new StreamReader(stream)
@@ -19,13 +19,13 @@ module Client =
                 while true do
                     let! line = streamReader.ReadLineAsync() |> Async.AwaitTask
                     streamReader.DiscardBufferedData()
-                    printf "\nINC MSG FROM %s\n" line
+                    callback line
             }
 
-        member this.ConnectTo(host, port) =
+        member this.ConnectTo(host, port, callback) =
             async {
                 do! awaitTaskVoid (tcpClient.ConnectAsync(host = host, port = port))
-                this.listenAsync()
+                this.listenAsync (callback)
                 |> Async.StartAsTask
                 |> ignore
             }
@@ -46,8 +46,12 @@ module Client =
             member this.Dispose() = tcpClient.Close()
 
 let main =
+
+    let data_parser msg = printfn "-> %A" msg
+    let callback = fun msg -> printfn "-> %A" msg
+
     let c = new Client.Client()
-    let t = c.ConnectTo("127.0.0.1", 8081)
+    let t = c.ConnectTo("127.0.0.1", 8081, data_parser)
     while true do
         printf "Msg: "
         let msg = System.Console.ReadLine()

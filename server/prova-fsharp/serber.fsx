@@ -1,3 +1,8 @@
+(*
+#load "./client.fsx"
+open Client
+*)
+
 module Server =
 
     open System.Net
@@ -5,13 +10,12 @@ module Server =
     open System.Threading.Tasks
     open System.IO
     open System.Threading
-    //•Make it run.
-    //•Make it right.
-    //•Make it fast.
+
 
     let mutable clientTaskList: (string * CancellationTokenSource * Task * NetworkStream) list = []
-
     let addClientTask cl = clientTaskList <- cl :: clientTaskList
+
+
 
     let writeToClient cl msg =
         let streamWriter = new StreamWriter(stream = cl)
@@ -36,14 +40,16 @@ module Server =
         removeFirstTailRec pred list []
 
 
-    let listenForMessages clientId endpoint cl =
+    let listenForMessages cmd_parser clientId endpoint cl =
         let listenWorkflow =
             async {
                 use reader = new System.IO.StreamReader(stream = cl)
                 try
                     while true do
                         let! line = reader.ReadLineAsync() |> Async.AwaitTask
-                        printfn "MSG from %s: %s" endpoint line
+
+                        cmd_parser endpoint line
+
                         do! forwadMessageToConnectedClients (endpoint + ": " + line)
                             |> Async.Parallel
                             |> Async.Ignore
@@ -58,7 +64,7 @@ module Server =
             }
         listenWorkflow
 
-    let listen port =
+    let listen port cmd_parser =
         let listenWorkflow =
             async {
                 let listener = new TcpListener(IPAddress.Any, port)
@@ -72,20 +78,44 @@ module Server =
                     let cts = new CancellationTokenSource()
                     let clientListenTask =
                         Async.StartAsTask
-                            (listenForMessages id endpoint (client.GetStream()), cancellationToken = cts.Token)
+                            (listenForMessages cmd_parser id endpoint (client.GetStream()),
+                             cancellationToken = cts.Token)
 
                     addClientTask (id, cts, clientListenTask, client.GetStream())
             }
         Async.StartAsTask listenWorkflow
 
 
-open Server
+type User(nome, x, y, colore) =
+    member this.nome = nome
+    member this.x = x
+    member this.y = y
+    member this.colore = colore
+
+let mutable users: Map<string, User> = Map.empty
+
+
+module CmdParser = 
+    let parser endpoint msg = 
+        printfn "<- %s %A" endpoint msg
+
+
+
 
 let main =
-    let t = [ 1 .. 5 ] |> removeFirst (fun item -> item = 6)
+    let t = [1..5] |> Server.removeFirst (fun (item) -> item = 6)
 
-    let listenTask = Server.listen (8081)
+    let listenTask = (Server.listen 8081 CmdParser.parser)
 
     System.Console.ReadLine() |> ignore
 
 main
+
+
+(*
+Definizione di tutti i metodi una volta per tutte
+
+user/auth/
+
+
+*)
