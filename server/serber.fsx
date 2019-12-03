@@ -15,8 +15,6 @@ open System.Threading
 let mutable clientTaskList: (string * CancellationTokenSource * Task * NetworkStream) list = []
 let addClientTask cl = clientTaskList <- cl :: clientTaskList
 
-
-
 let writeToClient cl msg =
     let streamWriter = new StreamWriter(stream = cl)
     async {

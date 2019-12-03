@@ -1,7 +1,5 @@
 #load "./serber.fsx"
 
-open AsyncSerber
-
 type User(nome, x, y, colore) =
     member this.nome = nome
     member this.x = x
