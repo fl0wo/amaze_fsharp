@@ -45,9 +45,9 @@ let listenForMessages cmd_parser clientId endpoint cl =
                 while true do
                     let! line = reader.ReadLineAsync() |> Async.AwaitTask
 
-                    cmd_parser endpoint line
+                    let lobbyes = cmd_parser endpoint line
 
-                    do! forwadMessageToConnectedClients (endpoint + ": " + line)
+                    do! forwadMessageToConnectedClients (lobbyes)
                         |> Async.Parallel
                         |> Async.Ignore
             with _ ->
