@@ -48,4 +48,3 @@ type ColorEnum =
     | User = 3
     | End = 4
     | Percorso = 5
-5

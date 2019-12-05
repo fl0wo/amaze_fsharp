@@ -8,19 +8,26 @@ open System.IO
 
 open Utils
 
-type Player(x: int, y: int) =
+type Player(x: int, y: int, lambdaMove) =
+
+    // da usare val with get,set ... ma vabbhe
     let mutable _x: int = x
     let mutable _y: int = y
+
+    member this.lambdaMove = lambdaMove;
 
     member this.x = _x
     member this.y = _y
 
     member this.isLegal (x, y) = (x > 0 && y > 0)
 
-    member this.goUp = _y <- (_y - 1);this.isLegal(x,y);
-    member this.goDown = _y <- (_y + 1);this.isLegal(x,y);
-    member this.goLeft = _x <- (_x - 1);this.isLegal(x,y);
-    member this.goRight = _x <- (_x + 1);this.isLegal(x,y);
+    member this.updateAll x y = 
+        (this.lambdaMove x y);this.isLegal(x,y);
+
+    member this.goUp = _y <- (_y - 1);(this.updateAll _x _y)
+    member this.goDown = _y <- (_y + 1);(this.updateAll _x _y)
+    member this.goLeft = _x <- (_x - 1);(this.updateAll _x _y)
+    member this.goRight = _x <- (_x + 1);(this.updateAll _x _y)
 
 type Mappa(r: int, c: int) =
     let _mappa: array<array<int >> = Utils.initMatrix r c (int ColorEnum.Bloccato)
@@ -176,3 +183,9 @@ type Mappa(r: int, c: int) =
         if nCoolSpawns = 0 then (0, 0)
         else coolSpawns.[rand.Next(nCoolSpawns)]
 
+    override this.ToString() =
+        let mutable buf:string = "";
+        for r in (this.mappa) do
+            for c in r do
+                buf <- buf + c.ToString();
+        buf

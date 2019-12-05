@@ -19,7 +19,7 @@ module Client =
                 while true do
                     let! line = streamReader.ReadLineAsync() |> Async.AwaitTask
                     streamReader.DiscardBufferedData()
-                    callback line
+                    if not (isNull line) then callback line
             }
 
         member this.ConnectTo(host, port, callback) =
@@ -29,32 +29,33 @@ module Client =
                 |> Async.StartAsTask
                 |> ignore
             }
-            |> Async.StartAsTask
+            |> Async.RunSynchronously
+        //|> Async.StartAsTask
 
         member this.Write msg =
             match tcpClient.Connected with
-            | true ->
+            | _ ->
                 async {
                     let streamWriter = new StreamWriter(tcpClient.GetStream()) //use would close the baseStream --> dispose the stream elsewhere
                     do! awaitTaskVoid (streamWriter.WriteLineAsync(msg.ToString()))
                     do! awaitTaskVoid (streamWriter.FlushAsync())
                 }
-                |> Async.StartAsTask
+                |> Async.RunSynchronously
             | _ -> failwith "client not connected"
 
         interface System.IDisposable with
             member this.Dispose() = tcpClient.Close()
 
-let main =
+// let main =
 
-    let data_parser msg = printfn "-> %A" msg
-    let callback = fun msg -> printfn "-> %A" msg
+//     let data_parser msg = printfn "-> %A" msg
+//     let callback = fun msg -> printfn "-> %A" msg
 
-    let c = new Client.Client()
-    let t = c.ConnectTo("127.0.0.1", 8081, data_parser)
-    while true do
-        printf "Msg: "
-        let msg = System.Console.ReadLine()
-        c.Write(msg) |> ignore
+//     let c = new Client.Client()
+//     let t = c.ConnectTo("127.0.0.1", 8081, data_parser)
+//     while true do
+//         printf "Msg: "
+//         let msg = System.Console.ReadLine()
+//         c.Write(msg) |> ignore
 
-main
+// main
