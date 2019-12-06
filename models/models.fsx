@@ -8,13 +8,15 @@ open System.IO
 
 open Utils
 
-type Player(x: int, y: int) =
+type Player(x: int, y: int,lambdaMove) =
 
     // da usare val with get,set ... ma vabbhe
     let mutable _x: int = x
     let mutable _y: int = y
 
-    member val lambdaMove = (fun (x,y) -> ()) with get,set
+    // member val lambdaMove = (fun x y -> ()) with get,set
+
+    member this.lambdaMove = lambdaMove;
 
     member this.x = _x
     member this.y = _y
@@ -22,7 +24,8 @@ type Player(x: int, y: int) =
     member this.isLegal (x, y) = (x > 0 && y > 0)
 
     member this.updateAll x y = 
-        (this.lambdaMove(x,y));this.isLegal(x,y);
+        (this.lambdaMove x y);
+        this.isLegal(x,y);
 
     member this.goUp = _y <- (_y - 1);(this.updateAll _x _y)
     member this.goDown = _y <- (_y + 1);(this.updateAll _x _y)
@@ -148,19 +151,21 @@ type Mappa(r: int, c: int) =
             for y in 0 .. (this.c - 1) do
                 clone.[x].[y] <- mappa_.[x].[y]
 
-        if( not arePathsGenerated) then
-            let (eY,eX) = finish;
-            _paths.[eY].[eX] <- (eY,eX);
-            this.dfs clone finish   // Parto dalla fine e vedo come arrivare in tutte le celle
-            arePathsGenerated <- true;
+        // if( not arePathsGenerated) then
+        //     let (eY,eX) = finish;
+        //     _paths.[eY].[eX] <- (eY,eX);
+        //     this.dfs clone finish   // Parto dalla fine e vedo come arrivare in tutte le celle
+        //     arePathsGenerated <- true;
 
-        if(showSolution) then
-            // Applico tutti i blocchi del percorso risolutivo
-            clone <- (this.applyPathOn clone finish (tUser.[0].y,tUser.[0].x))
+        // let firstUser = tUser.[0];
+
+        // if(showSolution) then
+        //     // Applico tutti i blocchi del percorso risolutivo
+        //     clone <- (this.applyPathOn clone finish (firstUser.y,firstUser.x))
 
 
-        // Apply current user
-        clone.[tUser.[0].y].[tUser.[0].x] <- (int ColorEnum.User)
+        // // Apply current user
+        // clone.[firstUser.y].[firstUser.x] <- (int ColorEnum.User)
         clone
 
         member this.getIstanceWith ((tUser: array<Player>),(finish:int*int),(showSolution:bool)): array<array<int>> =

@@ -97,29 +97,45 @@ let (startY, startX) = mappa.randSpawn
 
 //let mutable comands: string list = []
 
-let lambdaMove =
-    fun ((x: int),(y: int)) ->
-        //comands <- comands @ [ "MO " + nome + " " + x.ToString() + " " + y.ToString() ]
-        singletonConnection.sendCmd ("MO " + nome + " " + x.ToString() + " " + y.ToString())
+let lM = 
+    fun x y ->
+            //comands <- comands @ [ "MO " + nome + " " + x.ToString() + " " + y.ToString() ]
+            printfn "moveeee %A %A %A" nome x y
+            singletonConnection.sendCmd ("MO " + nome + " " + x.ToString() + " " + y.ToString())
 
-let user: Player = Player(startX, startY)
-user.lambdaMove <- lambdaMove
+let user: Player = Player(startX, startY,lM)
+
 let (endX, endY) = mappa.randSpawn
 
 mappa.setEnd (endX, endY)
 
 singletonConnection.drawCallback <- 
     fun (maze:Maze) ->
-        let mappa_bin:array<array<int>> = (Utils.fromStringToMatrix maze.m maze.r maze.c);
-        
-        UtilsView.printMap (mappa.getIstanceWith([|
-            for part in maze.partecipants do
-                yield Player(part.x,part.y)
-        |], mappa_bin ,(endY, endX),true)) user (endY, endX)
+        let mappa_bin:array<array<int>> = (Utils.fromStringToMatrix maze.m 21 21);
+
+        // let partecipants = [|
+        //     for part in maze.partecipants do
+        //         yield Player(part.x,part.y,(fun x y -> ()))
+        // |]
+
+        let mutable partecipants = [];
+
+        for part in maze.partecipants do
+            //printfn "nome %A x %A y %A" part.nome part.x part.y
+            partecipants <- (Player(part.x,part.y,(fun x y -> ())))::partecipants;
+
+        let mm = (mappa.getIstanceWith( (partecipants |> List.toArray) , mappa_bin ,(endY, endX),true));
+
+        //printfn "%A" maze.m
+
+        //UtilsView.printMap mm user (endY, endX)
 
 
 singletonConnection.sendCmd ("LO " + nome + " " + startY.ToString() + " " + startX.ToString() + " " + "0")
-singletonConnection.sendCmd ("CR " + nome + " " + r.ToString() + " " + c.ToString() + " " + mappa.ToString())
+
+printfn "flo dioporco : %s"  (mappa.ToString())
+
+singletonConnection.sendCmd ("CR " + "flo" + " " + r.ToString() + " " + c.ToString() + " " + mappa.ToString())
 //singletonConnection.sendCmd ("MO " + nome + " 12 12")
 
 // comands <- comands @ [ ("LO " + nome + " " + startY.ToString() + " " + startX.ToString() + " " + "0") ]
@@ -130,7 +146,8 @@ let contr: Controller = Controller(mappa, user, (endX, endY))
 
 contr.reactiveKey()
 
-UtilsView.printMap (mappa.getIstanceWith([|user|],(endY, endX),true)) user (endY, endX)
+// UtilsView.printMap (mappa.getIstanceWith([|user|],(endY, endX),true)) user (endY, endX)
+
 // let execComands =
 //     while true do
 //         while not (List.isEmpty comands) do

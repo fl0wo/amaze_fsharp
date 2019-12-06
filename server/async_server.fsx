@@ -75,7 +75,7 @@ module CmdParser =
     let split (s: string) = s.Split [| ' ' |]
 
     let parser endpoint (msg: string) =
-        printfn "parser called";
+        printfn "parser called %A" msg ;
         let cmd = msg.[0..1]
         let rest = msg.[3..(msg.Length - 1)]
 
@@ -86,7 +86,9 @@ module CmdParser =
         match cmd with
         | "JO" -> (join par.[0] par.[1])
         | "MO" -> (move par.[0] (par.[1] |> int) (par.[2] |> int) )
-        | "CR" -> (create par.[0] (par.[1] |> int) (par.[2] |> int) (par.[3]))
+        | "CR" ->
+            printfn "ma diocan %A" (par.[3])
+            (create par.[0] (par.[1] |> int) (par.[2] |> int) (par.[3]))
         | "LO" -> (login par.[0] (par.[1] |> int) (par.[2] |> int) (par.[3] |> int))
         | _ -> ()
 
