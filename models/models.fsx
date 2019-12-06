@@ -8,13 +8,13 @@ open System.IO
 
 open Utils
 
-type Player(x: int, y: int, lambdaMove) =
+type Player(x: int, y: int) =
 
     // da usare val with get,set ... ma vabbhe
     let mutable _x: int = x
     let mutable _y: int = y
 
-    member this.lambdaMove = lambdaMove;
+    member val lambdaMove = (fun (x,y) -> ()) with get,set
 
     member this.x = _x
     member this.y = _y
@@ -22,7 +22,7 @@ type Player(x: int, y: int, lambdaMove) =
     member this.isLegal (x, y) = (x > 0 && y > 0)
 
     member this.updateAll x y = 
-        (this.lambdaMove x y);this.isLegal(x,y);
+        (this.lambdaMove(x,y));this.isLegal(x,y);
 
     member this.goUp = _y <- (_y - 1);(this.updateAll _x _y)
     member this.goDown = _y <- (_y + 1);(this.updateAll _x _y)
@@ -140,13 +140,13 @@ type Mappa(r: int, c: int) =
         else map
 
 
-    member this.getIstanceWith (tUser: Player) (finish:int*int) (showSolution:bool): array<array<int>> =
+    member this.getIstanceWith ((tUser: array<Player>),(mappa_ : array<array<int>>),(finish:int*int),(showSolution:bool)) : array<array<int>> =
         let mutable clone: array<array<int>> = Utils.initMatrix (this.r) (this.c) (int ColorEnum.Bloccato)
 
         // Applico tutti i blocchi del labirinto
         for x in 0 .. (this.r - 1) do
             for y in 0 .. (this.c - 1) do
-                clone.[x].[y] <- this.mappa.[x].[y]
+                clone.[x].[y] <- mappa_.[x].[y]
 
         if( not arePathsGenerated) then
             let (eY,eX) = finish;
@@ -156,12 +156,15 @@ type Mappa(r: int, c: int) =
 
         if(showSolution) then
             // Applico tutti i blocchi del percorso risolutivo
-            clone <- (this.applyPathOn clone finish (tUser.y,tUser.x))
+            clone <- (this.applyPathOn clone finish (tUser.[0].y,tUser.[0].x))
 
 
         // Apply current user
-        clone.[tUser.y].[tUser.x] <- (int ColorEnum.User)
+        clone.[tUser.[0].y].[tUser.[0].x] <- (int ColorEnum.User)
         clone
+
+        member this.getIstanceWith ((tUser: array<Player>),(finish:int*int),(showSolution:bool)): array<array<int>> =
+            (this.getIstanceWith(tUser,(this.mappa),finish,showSolution))
 
     // Sempre un quadratino vuoto circondato da almeno 3 muretti
     member this.randSpawn =

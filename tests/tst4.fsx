@@ -1,7 +1,38 @@
+#r "System.Runtime.Serialization"
+
 open System.IO
 open System.Text
 open System.Runtime.Serialization
+open System.Runtime.Serialization.Json
 
-let s = "ciao"
+// [<field:DataMember(Name = "name")>] per bindare con un nome diverso
 
-printfn "%A" s.[2..(s.Length - 1)]
+[<DataContract>]
+type User =
+    { [<field:DataMember(Name = "name")>]
+      name: string
+      [<field:DataMember(Name = "x")>]
+      x: int
+      [<field:DataMember(Name = "y")>]
+      y: int
+      [<field:DataMember(Name = "color")>]
+      color: int }
+
+
+let decode (s: string) =
+    let json = DataContractJsonSerializer(typeof<User>)
+    let byteArray = Encoding.UTF8.GetBytes(s)
+    let stream = new MemoryStream(byteArray)
+    json.ReadObject(stream) :?> User
+
+let tw = "{
+    \"name\":\"Flo\",
+    \"x\":1,
+    \"y\":1,
+    \"color\":0
+    }"
+
+
+let v = decode tw // val v : geo = {t = "Point"; coordinates = [|-7.002648; 110.449961|];}
+
+printfn "%A" v

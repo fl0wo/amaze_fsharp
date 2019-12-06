@@ -1,6 +1,9 @@
+open System
+
 #load "../parsers/json_parser.fsx"
 
 #load "./../models/models.fsx"
+
 
 
 open Parser
@@ -21,19 +24,27 @@ type Maze =
       m: string
       partecipants: User list }
 
-(*
-    type Json =
-    | Null
-    | Bool of bool
-    | Number of float
-    | String of string
-    | Array of Json list
-    | Object of (string * Json) list
-*)
 
-let fromJson2Maze s: Maze =
+// type Json =
+//     | Null
+//     | Bool of bool
+//     | Number of float
+//     | String of string
+//     | Array of Json list
+//     | Object of (string * Json) list
 
 
-    let o = ss
+let printOption (opt: Json option) =
+    if (Option.isSome opt) then
+        let o: Json = (Option.get opt)
 
-    printfn "%A" o
+
+
+    // for x in o do
+    //     printfn "%A" x
+
+    else
+        ()
+
+printOption ss
+printOption ss
