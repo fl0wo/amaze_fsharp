@@ -3,10 +3,16 @@ open System
 #load "./../models/models.fsx"
 #load "./../view/view.fsx"
 #load "./../controls/controller.fsx"
+#load "./../animations/splashscreen.fsx"
+
 
 open Models
 open View
 open Controller
+
+open Splashscreen
+
+// startAnimation 1500
 
 let askInput title =
     printfn "Inserire %s : \n" title

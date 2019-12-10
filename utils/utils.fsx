@@ -51,6 +51,20 @@ module Utils =
                          ctr <- ctr + 1
                          yield (str.[ctr - 1]) |> charToInt |] |]
 
+    let fromStringToMatrixChar (str: string) righe colonne: array<array<char>> =
+        let mutable ctr = 0 //evitabile
+        [| for r in 1 .. righe do
+            yield [| for c in 1 .. colonne do
+                         ctr <- ctr + 1
+                         yield (str.[ctr - 1]) |] |]
+
+    let fromMatrixToString (m: array<array<char>>) =
+        let mutable str = ""
+        for r in m do
+            for c in r do
+                str <- str + c.ToString()
+            str <- "\n"
+
 (*
             111111111
             000001000
