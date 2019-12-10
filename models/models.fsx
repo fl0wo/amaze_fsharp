@@ -151,21 +151,21 @@ type Mappa(r: int, c: int) =
             for y in 0 .. (this.c - 1) do
                 clone.[x].[y] <- mappa_.[x].[y]
 
-        // if( not arePathsGenerated) then
-        //     let (eY,eX) = finish;
-        //     _paths.[eY].[eX] <- (eY,eX);
-        //     this.dfs clone finish   // Parto dalla fine e vedo come arrivare in tutte le celle
-        //     arePathsGenerated <- true;
+        if( not arePathsGenerated) then
+            let (eY,eX) = finish;
+            _paths.[eY].[eX] <- (eY,eX);
+            this.dfs clone finish   // Parto dalla fine e vedo come arrivare in tutte le celle
+            arePathsGenerated <- true;
 
-        // let firstUser = tUser.[0];
+        let firstUser = tUser.[0];
 
-        // if(showSolution) then
-        //     // Applico tutti i blocchi del percorso risolutivo
-        //     clone <- (this.applyPathOn clone finish (firstUser.y,firstUser.x))
+        if(showSolution) then
+            // Applico tutti i blocchi del percorso risolutivo
+            clone <- (this.applyPathOn clone finish (firstUser.y,firstUser.x))
 
 
-        // // Apply current user
-        // clone.[firstUser.y].[firstUser.x] <- (int ColorEnum.User)
+        // Apply current user
+        clone.[firstUser.y].[firstUser.x] <- (int ColorEnum.User)
         clone
 
         member this.getIstanceWith ((tUser: array<Player>),(finish:int*int),(showSolution:bool)): array<array<int>> =

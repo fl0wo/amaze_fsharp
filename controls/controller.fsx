@@ -40,6 +40,7 @@ type Controller(mappa: Mappa, utente: Player, finish: int * int) =
 
             let (endX, endY) = this.finish
 
-            if needToRefresh && UtilsView.canPrint then ()
+            if needToRefresh && UtilsView.canPrint then
+                UtilsView.printMap (mappa.getIstanceWith ([| utente |], (endY, endX), true)) utente (endY, endX)
         }
         |> Async.Start

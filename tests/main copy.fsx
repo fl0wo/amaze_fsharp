@@ -126,14 +126,12 @@ singletonConnection.drawCallback <-
 
         let mm = (mappa.getIstanceWith( (partecipants |> List.toArray) , mappa_bin ,(endY, endX),true));
 
-        //printfn "%A" maze.m
+        printfn "%A" maze.m
 
         //UtilsView.printMap mm user (endY, endX)
 
 
 singletonConnection.sendCmd ("LO " + nome + " " + startY.ToString() + " " + startX.ToString() + " " + "0")
-
-printfn "flo dioporco : %s"  (mappa.ToString())
 
 singletonConnection.sendCmd ("CR " + "flo" + " " + r.ToString() + " " + c.ToString() + " " + mappa.ToString())
 //singletonConnection.sendCmd ("MO " + nome + " 12 12")
