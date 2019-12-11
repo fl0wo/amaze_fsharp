@@ -65,6 +65,15 @@ module Utils =
                 str <- str + c.ToString()
             str <- "\n"
 
+    let swap (a: _ []) x y =
+        let tmp = a.[x]
+        a.[x] <- a.[y]
+        a.[y] <- tmp
+
+    let shuffle (a: 'T array): 'T array =
+        (Array.iteri (fun i _ -> swap a i (rand.Next(i, Array.length a))) a)
+        a
+
 (*
             111111111
             000001000

@@ -102,7 +102,7 @@ module UtilsView =
         if (canPrint) then
 
             Console.ForegroundColor <- ( enum (getSetting "colore muretti") )
-            
+
             let wall_buffer = (__genBuffer m (int ColorEnum.Bloccato))
 
             (colorBuffer wall_buffer ConsoleColor.White)

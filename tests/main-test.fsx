@@ -19,6 +19,8 @@ let mutable oldLeft = Console.CursorLeft
 
 let mS = MenuSettingsController(oldLeft, oldTop)
 
+mS.initDefaultValues
+
 let askInput title suggerimento =
     printfn "Inserire %s (es %s ): \n" title suggerimento
     let input = Console.ReadLine()
@@ -36,7 +38,12 @@ askInput "colore uscita" "3" |> int
 askInput "colore percorso" "3" |> int
 askInput "colore muretti" "3" |> int
 
-let mappa: Mappa = Mappa(righe, colonne)
+UtilsView.mySettings <- mS.hashSettings
+
+// Prendo righe e colonne dai settings
+let mappa: Mappa = Mappa(
+    (UtilsView.getSetting "righe") |> int
+,  (UtilsView.getSetting "colonne") |> int )
 
 mappa.initLabirinto
 
@@ -50,9 +57,7 @@ let c: Controller = Controller(mappa, user, (endX, endY))
 
 c.reactiveKey()
 
-UtilsView.mySettings <- mS.hashSettings
-
 UtilsView.lastCursorPosition <- (Console.CursorLeft, Console.CursorTop)
 
-UtilsView.printMap (mappa.getIstanceWith ([| user |], (endY, endX), true)) user (endY, endX)
+UtilsView.printMap (mappa.getIstanceWith ([| user |], (endY, endX),false)) user (endY, endX)
 Threading.Thread.Sleep(-1)

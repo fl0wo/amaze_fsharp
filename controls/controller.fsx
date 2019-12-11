@@ -41,7 +41,7 @@ type Controller(mappa: Mappa, utente: Player, finish: int * int) =
             let (endX, endY) = this.finish
 
             if needToRefresh && UtilsView.canPrint then
-                UtilsView.printMap (mappa.getIstanceWith ([| utente |], (endY, endX), true)) utente (endY, endX)
+                UtilsView.printMap (mappa.getIstanceWith ([| utente |], (endY, endX), false)) utente (endY, endX)
         }
         |> Async.Start
 
@@ -68,6 +68,15 @@ type MenuSettingsController(startingCursor: int * int) =
 
         title
 
+    member this.initDefaultValues =
+
+        this.addProperty ("righe", "21") |> ignore
+        this.addProperty ("colonne", "21") |> ignore
+
+        this.addProperty ("colore muretti", "1") |> ignore
+        this.addProperty ("colore giocatore", "3") |> ignore
+        this.addProperty ("colore percorso", "4") |> ignore
+        this.addProperty ("colore uscita", "6")
 
     member this.hashSettings =
         let mutable returningMap: Map<string, string> = Map.empty
@@ -75,7 +84,6 @@ type MenuSettingsController(startingCursor: int * int) =
         this.properties |> Map.iter (fun title property -> returningMap <- returningMap.Add(title, property.value))
 
         returningMap
-
 
     member this.setProperty (title: string, value: string) =
         match this.properties.TryGetValue(title) with

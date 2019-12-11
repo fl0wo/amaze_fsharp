@@ -5,6 +5,11 @@ open System
 open System.IO
 
 #load "./../utils/utils.fsx"
+#load "./../maze-generators/dfs_stack.fsx"
+#load "./../maze-generators/dfs_tree.fsx"
+
+open Dfs_stack
+open Dfs_tree
 
 open Utils
 
@@ -33,7 +38,7 @@ type Player(x: int, y: int,lambdaMove) =
     member this.goRight = _x <- (_x + 1);(this.updateAll _x _y)
 
 type Mappa(r: int, c: int) =
-    let _mappa: array<array<int >> = Utils.initMatrix r c (int ColorEnum.Bloccato)
+    let mutable _mappa: array<array<int >> = Utils.initMatrix r c (int ColorEnum.Bloccato)
 
     let mutable _end: int * int = (0,0)
     let mutable _paths:array<array<int * int>> = Utils.initPaths r c
@@ -54,71 +59,10 @@ type Mappa(r: int, c: int) =
         (x > 0 && x < (c - 1) && y > 0 && y < (r - 1))
 
     member this.canGo y x =     
-        this.isLegal(x,y) && _mappa.[x].[y] <> (int ColorEnum.Bloccato);
+            this.isLegal(x,y) && _mappa.[x].[y] <> (int ColorEnum.Bloccato);
 
-    // Generates the labirinth
-    member this.initLabirinto =
-
-        let frontier (x, y) =
-            [ x - 2, y
-              x + 2, y
-              x, y - 2
-              x, y + 2 ]
-            |> List.filter (fun (x, y) -> this.isLegal (x, y) && _mappa.[x].[y] = (int ColorEnum.Bloccato))
-        let neighbor (x, y) =
-            [ x - 2, y
-              x + 2, y
-              x, y - 2
-              x, y + 2 ]
-            |> List.filter (fun (x, y) -> this.isLegal (x, y) && _mappa.[x].[y] = (int ColorEnum.Aperto))
-
-        let randomCell() = (1 + rand.Next(c - 1)), (1 + rand.Next(r - 1))
-
-        let removeAt index (lst: (int * int) list): (int * int) list =
-            let x, y = lst.[index]
-            lst |> List.filter (fun (a, b) -> not (a = x && b = y))
-
-        let between p1 p2 =
-            let x =
-                match (fst p2 - fst p1) with
-                | 0 -> fst p1
-                | 2 -> 1 + fst p1
-                | -2 -> -1 + fst p1
-                | _ -> -1
-
-            let y =
-                match (snd p2 - snd p1) with
-                | 0 -> snd p1
-                | 2 -> 1 + snd p1
-                | -2 -> -1 + snd p1
-                | _ -> -1
-
-            (x, y)
-
-        let connect_adj (x, y) =
-            let neighbors = neighbor (x, y)
-            if (neighbors <> []) then
-                let pickedIndex = rand.Next(neighbors.Length)
-                let xn, yn = neighbors.[pickedIndex]
-                let xb, yb = between (x, y) (xn, yn)
-                _mappa.[xb].[yb] <- (int ColorEnum.Aperto)
-            ()
-
-        let rec extend front =
-            match front with
-            | [] -> ()
-            | _ ->
-                let pickedIndex = rand.Next(front.Length)
-                let xf, yf = front.[pickedIndex]
-                _mappa.[xf].[yf] <- (int ColorEnum.Aperto)
-                connect_adj (xf, yf)
-                extend ((front |> removeAt pickedIndex) @ frontier (xf, yf))
-
-        let x, y = randomCell()
-        _mappa.[x].[y] <- (int ColorEnum.Aperto)
-        extend (frontier (x, y))
-
-        _mappa
+    member this.initLabirinto = 
+        _mappa <- genMatrixMaze r c
 
     member this.dfs (matrix:array<array<int>>) start = 
         let dirs = [(0,1);(0,-1);(-1,0);(1,0)];
