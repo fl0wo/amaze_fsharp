@@ -51,25 +51,25 @@ let genMatrixMazeWithTree r c: array<array<int>> =
             yield [| for x in 0 .. (height*2) do
                          yield 0 |] |]
 
-    let rec drawMaze prevx prevy node =
-        let addTile (x, y) =
+    let rec createMaze prevx prevy node =
+        let addQuadretto (x, y) =
             matrxi.[x].[y] <- 1;
 
         let colorGrid x y =
             let finalX, finalY = x * 2, y * 2
             let interX = finalX + prevx - x
             let interY = finalY + prevy - y
-            addTile (finalX, finalY)
+            addQuadretto (finalX, finalY)
             if (interX <> finalX || interY <> finalY) then
-                addTile (interX, interY)
+                addQuadretto (interX, interY)
 
         match node with
         | Node(x, y, children) ->
             colorGrid x y
-            List.iter (drawMaze x y) children
+            List.iter (createMaze x y) children
         | Leaf(x, y) ->
             colorGrid x y
 
-    drawMaze 0 0 maze
+    createMaze 0 0 maze
 
     matrxi

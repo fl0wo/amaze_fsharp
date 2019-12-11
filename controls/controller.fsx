@@ -41,7 +41,7 @@ type Controller(mappa: Mappa, utente: Player, finish: int * int) =
             let (endX, endY) = this.finish
 
             if needToRefresh && UtilsView.canPrint then
-                UtilsView.printMap (mappa.getIstanceWith ([| utente |], (endY, endX), false)) utente (endY, endX)
+                UtilsView.printMap (mappa.getIstanceWith ([| utente |], (endY, endX), true)) utente (endY, endX)
         }
         |> Async.Start
 
@@ -68,8 +68,7 @@ type MenuSettingsController(startingCursor: int * int) =
 
         title
 
-    member this.initDefaultValues =
-
+    member this.initDefaultProperties =
         this.addProperty ("righe", "21") |> ignore
         this.addProperty ("colonne", "21") |> ignore
 

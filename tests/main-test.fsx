@@ -5,7 +5,6 @@ open System
 #load "./../controls/controller.fsx"
 #load "./../animations/splashscreen.fsx"
 
-
 open Models
 open View
 open Controller
@@ -18,15 +17,12 @@ let mutable oldTop = Console.CursorTop
 let mutable oldLeft = Console.CursorLeft
 
 let mS = MenuSettingsController(oldLeft, oldTop)
-
-mS.initDefaultValues
-
+mS.initDefaultProperties
 let askInput title suggerimento =
     printfn "Inserire %s (es %s ): \n" title suggerimento
     let input = Console.ReadLine()
     mS.addProperty (title, input) |> ignore
     input
-
 
 let righe = askInput "righe" "21" |> int
 let colonne = askInput "colonne" "21" |> int

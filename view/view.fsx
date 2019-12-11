@@ -32,7 +32,7 @@ module UtilsView =
             yield c |]
 
 
-    let monitor = new Object() // lock
+    let monitor =  Object() // lock
 
     // let mutable oldMapClone:array<array<int>> = null;
 
@@ -107,7 +107,7 @@ module UtilsView =
 
             (colorBuffer wall_buffer ConsoleColor.White)
 
-            (colorPaths m (int ColorEnum.Percorso) ( enum (getSetting "colore percorso") )  )
+            (colorPaths m (int ColorEnum.Percorso) ( enum (getSetting "colore percorso")))
             // Coloro l'utente
             (colorCell (u.x, u.y) ( enum (getSetting "colore giocatore") ))
 

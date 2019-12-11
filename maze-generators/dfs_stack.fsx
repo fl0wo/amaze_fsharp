@@ -10,34 +10,37 @@ let genMatrixMaze c r =
 
     let _mappa:array<array<int>> = Utils.initMatrix (c*2) (r*2) (int ColorEnum.Bloccato)
 
-    let isLegal (x, y) =
+    let isntOutside (x, y) =
         (x > 0 && x < (c - 1) && y > 0 && y < (r - 1))
 
     let canGo y x =
-            isLegal(x,y) && _mappa.[x].[y] <> (int ColorEnum.Bloccato);
+            isntOutside(x,y) && _mappa.[x].[y] <> (int ColorEnum.Bloccato);
 
-    // Generates the labirinth
+    // Genera un labirinto
     let initLabirinto =
 
-        let frontier (x, y) =
+        let muretti (x, y) =
             [ x - 2, y
               x + 2, y
               x, y - 2
               x, y + 2 ]
-            |> List.filter (fun (x, y) -> isLegal (x, y) && _mappa.[x].[y] = (int ColorEnum.Bloccato))
-        let neighbor (x, y) =
+            |> List.filter (fun (x, y) -> isntOutside (x, y) && _mappa.[x].[y] = (int ColorEnum.Bloccato))
+
+        let viette (x, y) =
             [ x - 2, y
               x + 2, y
               x, y - 2
               x, y + 2 ]
-            |> List.filter (fun (x, y) -> isLegal (x, y) && _mappa.[x].[y] = (int ColorEnum.Aperto))
+            |> List.filter (fun (x, y) -> isntOutside (x, y) && _mappa.[x].[y] = (int ColorEnum.Aperto))
 
-        let randomCell() = (1 + rand.Next(c - 1)), (1 + rand.Next(r - 1))
+        let cellaRandom() = (1 + rand.Next(c - 1)), (1 + rand.Next(r - 1))
 
-        let removeAt index (lst: (int * int) list): (int * int) list =
-            let x, y = lst.[index]
-            lst |> List.filter (fun (a, b) -> not (a = x && b = y))
+        let remove_at i (l: (int * int) list): (int * int) list =
+            let riga,colonna = l.[i]
+            l |> List.filter (fun (y, x) -> not (y = riga && x = colonna))
 
+        // fst prende il primo elemento di una tupla
+        // snd il secondo
         let between p1 p2 =
             let x =
                 match (fst p2 - fst p1) with
@@ -56,28 +59,28 @@ let genMatrixMaze c r =
             (x, y)
 
         let connect_adj (x, y) =
-            let neighbors = neighbor (x, y)
-            if (neighbors <> []) then
-                let pickedIndex = rand.Next(neighbors.Length)
-                let xn, yn = neighbors.[pickedIndex]
+            let vie_adj = viette (x, y)
+            if (vie_adj <> []) then
+                let pickedIndex = rand.Next(vie_adj.Length)
+                let xn, yn = vie_adj.[pickedIndex]
 
                 let xb, yb = between (x, y) (xn, yn)
                 _mappa.[xb].[yb] <- (int ColorEnum.Aperto)
             ()
 
-        let rec extend front =
-            match front with
+        let rec apri_vie muri =
+            match muri with
             | [] -> ()
             | _ ->
-                let pickedIndex = rand.Next(front.Length)
-                let xf, yf = front.[pickedIndex]
+                let indice = rand.Next(muri.Length)
+                let xf, yf = muri.[indice]
                 _mappa.[xf].[yf] <- (int ColorEnum.Aperto)
                 connect_adj (xf, yf)
-                extend ((front |> removeAt pickedIndex) @ frontier (xf, yf))
+                apri_vie ((muri |> remove_at indice) @ muretti (xf, yf))
 
-        let x, y = randomCell()
-        _mappa.[x].[y] <- (int ColorEnum.Aperto)
-        extend (frontier (x, y))
+        let riga, colonna = cellaRandom()
+        _mappa.[riga].[colonna] <- (int ColorEnum.Aperto)
+        apri_vie (muretti (riga, colonna))
 
         _mappa
 
