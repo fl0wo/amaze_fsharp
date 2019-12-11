@@ -11,6 +11,10 @@ open Models
 
 module UtilsView =
 
+    let mutable mySettings: Map<string,string> = Map.empty
+
+    let mutable lastCursorPosition: int * int = (0, 0)
+
     let mutable canPrint = true
 
     let N_UPPER_BORDER = 2
@@ -23,6 +27,11 @@ module UtilsView =
         [| for x in 1 .. 10 do
             yield ("\u001b[3" + x.ToString() + ";1m") |]
 
+    let coloriDisponibili =
+        [| for c in 1 .. 15 do
+            yield c |]
+
+
     let monitor = new Object() // lock
 
     // let mutable oldMapClone:array<array<int>> = null;
@@ -30,6 +39,11 @@ module UtilsView =
     let setWindowSize (w: int) (h: int) = Console.SetWindowSize(w, h)
 
     let cls = Console.Clear()
+
+    let getSetting hash =
+        match mySettings.TryGetValue(hash) with
+        | true, (u: String ) -> u |> int
+        | _ -> -1
 
     let __genBufferWithAnsii (m: array<array<int>>): string =
         let mutable mbuffer = "\n\n" // resize with N_UPPER_BORDER
@@ -51,17 +65,18 @@ module UtilsView =
         mbuffer
 
     let colorCell (x, y) c =
-        Console.SetCursorPosition(x * 2, y + (N_UPPER_BORDER))
+        let xC, yC = lastCursorPosition
+        Console.SetCursorPosition((x * 2) + xC, yC + y + (N_UPPER_BORDER))
         Console.ForegroundColor <- c
         Console.WriteLine(rettangolo + rettangolo)
-        Console.SetCursorPosition(0, 0)
+        Console.SetCursorPosition(lastCursorPosition)
         Console.ResetColor()
 
     let colorBuffer (buffer: string) c =
-        Console.SetCursorPosition(0, 0)
+        Console.SetCursorPosition(lastCursorPosition)
         Console.ForegroundColor <- c
         Console.WriteLine(buffer)
-        Console.SetCursorPosition(0, 0)
+        Console.SetCursorPosition(lastCursorPosition)
         Console.ResetColor()
 
     let colorPaths (m: array<array<int>>) (kindOfBlock) (c) =
@@ -74,7 +89,9 @@ module UtilsView =
         if (canPrint) then
             canPrint <- false
             let mbuffer = __genBufferWithAnsii m
-            Console.SetCursorPosition(0, N_UPPER_BORDER)
+
+            let xC, yC = lastCursorPosition
+            Console.SetCursorPosition(0 + xC, N_UPPER_BORDER + yC)
 
             printfn "%s" mbuffer
             canPrint <- true
@@ -84,20 +101,20 @@ module UtilsView =
     let printMappaWindows (m: array<array<int>>) (u: Player) (e: int * int) =
         if (canPrint) then
 
-            Console.ForegroundColor <- ConsoleColor.White
-
+            Console.ForegroundColor <- ( enum (getSetting "colore muretti") )
+            
             let wall_buffer = (__genBuffer m (int ColorEnum.Bloccato))
 
             (colorBuffer wall_buffer ConsoleColor.White)
 
-            (colorPaths m (int ColorEnum.Percorso) ConsoleColor.Green)
+            (colorPaths m (int ColorEnum.Percorso) ( enum (getSetting "colore percorso") )  )
             // Coloro l'utente
-            (colorCell (u.x, u.y) ConsoleColor.Blue)
+            (colorCell (u.x, u.y) ( enum (getSetting "colore giocatore") ))
 
             let (endY, endX) = e
 
             // Coloro la fine
-            (colorCell (endX, endY) ConsoleColor.Red)
+            (colorCell (endX, endY) ( enum (getSetting "colore uscita") ))
         else
             ()
 

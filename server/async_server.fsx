@@ -87,7 +87,7 @@ module CmdParser =
         | "JO" -> (join par.[0] par.[1])
         | "MO" -> (move par.[0] (par.[1] |> int) (par.[2] |> int) )
         | "CR" ->
-            printfn "ma diocan %A" (par.[3])
+            printfn "ma %A" (par.[3])
             (create par.[0] (par.[1] |> int) (par.[2] |> int) (par.[3]))
         | "LO" -> (login par.[0] (par.[1] |> int) (par.[2] |> int) (par.[3] |> int))
         | _ -> ()

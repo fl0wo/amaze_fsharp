@@ -44,3 +44,64 @@ type Controller(mappa: Mappa, utente: Player, finish: int * int) =
                 UtilsView.printMap (mappa.getIstanceWith ([| utente |], (endY, endX), true)) utente (endY, endX)
         }
         |> Async.Start
+
+
+type Property(title, value, cursorPosition) =
+
+    member val title = title with get, set
+    member val value = value with get, set
+    member val cursorPosition = cursorPosition
+
+
+type MenuSettingsController(startingCursor: int * int) =
+
+    member val startingCursor = startingCursor with get, set
+    member val properties = Map.empty with get, set
+
+    member this.addProperty (title: string, value: string) =
+        let p = Property(title, value, this.startingCursor)
+
+        this.properties <- this.properties.Add(title, p)
+
+        let xC, yC = this.startingCursor
+        this.startingCursor <- (xC, yC + 1)
+
+        title
+
+
+    member this.hashSettings =
+        let mutable returningMap: Map<string, string> = Map.empty
+
+        this.properties |> Map.iter (fun title property -> returningMap <- returningMap.Add(title, property.value))
+
+        returningMap
+
+
+    member this.setProperty (title: string, value: string) =
+        match this.properties.TryGetValue(title) with
+        | true, (u: Property) ->
+            u.value <- value
+            this.properties.Add(title, u) |> ignore
+        | _ -> ()
+
+    member this.propertiesList = Map.toList this.properties
+
+    member this.printColorList colorList =
+        printfn ""
+        for c in UtilsView.coloriDisponibili do
+            Console.ForegroundColor <- enum c
+            printf "%s%s " UtilsView.rettangolo UtilsView.rettangolo
+        Console.ResetColor()
+        printfn "\n"
+        for i in 0 .. (UtilsView.coloriDisponibili.Length - 1) do
+            printf "%d " i
+            if (i < 10) then printf " "
+        printfn "\n"
+
+    member this.printSettings =
+        let oldPosition = (Console.CursorLeft, Console.CursorTop)
+        this.properties
+        |> Map.iter (fun title property ->
+            Console.SetCursorPosition(property.cursorPosition)
+            Console.Write(property.title + " : " + property.value))
+        Console.SetCursorPosition oldPosition

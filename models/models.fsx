@@ -50,7 +50,8 @@ type Mappa(r: int, c: int) =
         _end <- (x,y);
         _mappa.[y].[x] <- (int ColorEnum.End)
 
-    member this.isLegal (x, y) = (x > 0 && x < (c - 1) && y > 0 && y < (r - 1))
+    member this.isLegal (x, y) = 
+        (x > 0 && x < (c - 1) && y > 0 && y < (r - 1))
 
     member this.canGo y x =     
         this.isLegal(x,y) && _mappa.[x].[y] <> (int ColorEnum.Bloccato);

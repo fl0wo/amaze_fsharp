@@ -12,14 +12,29 @@ open Controller
 
 open Splashscreen
 
-// startAnimation 1500
+startAnimation 3000
 
-let askInput title =
-    printfn "Inserire %s : \n" title
-    Console.ReadLine()
+let mutable oldTop = Console.CursorTop
+let mutable oldLeft = Console.CursorLeft
 
-let righe = askInput "righe" |> int
-let colonne = askInput "colonne" |> int
+let mS = MenuSettingsController(oldLeft, oldTop)
+
+let askInput title suggerimento =
+    printfn "Inserire %s (es %s ): \n" title suggerimento
+    let input = Console.ReadLine()
+    mS.addProperty (title, input) |> ignore
+    input
+
+
+let righe = askInput "righe" "21" |> int
+let colonne = askInput "colonne" "21" |> int
+
+mS.printColorList UtilsView.coloriDisponibili
+
+askInput "colore giocatore" "2" |> int
+askInput "colore uscita" "3" |> int
+askInput "colore percorso" "3" |> int
+askInput "colore muretti" "3" |> int
 
 let mappa: Mappa = Mappa(righe, colonne)
 
@@ -34,5 +49,10 @@ mappa.setEnd (endX, endY)
 let c: Controller = Controller(mappa, user, (endX, endY))
 
 c.reactiveKey()
+
+UtilsView.mySettings <- mS.hashSettings
+
+UtilsView.lastCursorPosition <- (Console.CursorLeft, Console.CursorTop)
+
 UtilsView.printMap (mappa.getIstanceWith ([| user |], (endY, endX), true)) user (endY, endX)
 Threading.Thread.Sleep(-1)
